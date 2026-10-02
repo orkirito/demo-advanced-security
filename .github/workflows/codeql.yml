@@ -1,0 +1,44 @@
+name: "CodeQL"
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '31 4 * * 1'
+
+jobs:
+  analyze:
+    name: Analyse CodeQL (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      packages: read
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: java-kotlin
+            build-mode: none
+
+    steps:
+      - name: Récupération du code
+        uses: actions/checkout@v4
+
+      - name: Initialisation de CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          # La suite "security-extended" ajoute des requêtes de précision moindre
+          # mais de couverture supérieure à la suite par défaut.
+          queries: security-extended
+
+      - name: Analyse
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
